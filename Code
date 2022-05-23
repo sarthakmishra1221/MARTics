@@ -1,0 +1,241 @@
+#include <Servo.h>
+
+
+Servo S1;
+Servo S2;
+Servo S3;
+Servo S4;
+
+#define LS A4      // left sensor
+#define RS 2      // right sensor
+
+#define LM1 8      // left motor
+#define LM2 7       // left motor
+#define RM1 5       // right motor
+#define RM2 4       // right motor
+
+int trigPin = A1;
+int echoPin = A2;
+int buz = A3;
+int ITEM;
+
+long duration, distance;
+  
+int P1 = 0;
+int P2 = 0;
+int P3 = 0;
+int P4 = 0;
+
+void setup() 
+{
+  Serial.begin(9600); 
+
+ 
+  delay(100);
+  digitalWrite(buz,HIGH);
+  delay(1000);
+  pinMode(LS, INPUT);  //set these pins as inputs
+  pinMode(RS, INPUT);  //set these pins as inputs
+  pinMode(LM1, OUTPUT);  //set these pins as outputs
+  pinMode(LM2, OUTPUT);
+  pinMode(RM1, OUTPUT);
+  pinMode(RM2, OUTPUT);
+  pinMode(9, OUTPUT);    //Enable pins for Motor Driver 
+  pinMode(3, OUTPUT);
+  pinMode(buz, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  S1.attach(6);
+  S1.write(0);
+  delay(100);
+  
+  S2.attach(10);
+  S2.write(0);
+  delay(100);
+  
+  S3.attach(11);
+  S3.write(90);
+  delay(100);
+  
+  S4.attach(A0);
+  S4.write(180);
+}
+
+void loop()
+{
+  if (Serial.available()) 
+  ITEM = Serial.read(); 
+  switch (ITEM) {
+    case 'F':
+      PATH_1();
+      delay(3000);
+      ARM();
+      delay(3000);
+      
+      break;
+
+    case 'S':
+      PATH_1();
+      delay(500);
+      ARM();
+      break;
+
+    case '3':
+      PATH_1();
+      delay(500);
+      ARM();
+      break;
+  }
+}
+
+
+void PATH_1()
+  {
+    while(1){  
+      
+      ULTRA();
+      //Serial.println(distance);
+      if (distance>=5)
+      {
+       digitalWrite(buz,HIGH);
+      if((digitalRead(LS)==0)&&(digitalRead(RS)==0))     // When Both Sensors are on White Surface Move Forward 
+      {
+        
+        digitalWrite(LM1, LOW);
+        digitalWrite(LM2, HIGH);
+        analogWrite(9,80);   //Motor Speed, Pins must be connected with PWM pins "~"
+        digitalWrite(RM1, LOW);
+        digitalWrite(RM2, HIGH);
+        analogWrite(3,80);  //Motor Speed, Pins must be connected with PWM pins "~"
+        
+        
+      }
+      
+      else if((digitalRead(LS)==0) && (digitalRead(RS)==1))     // When Right sensor detects Black tape 
+      {
+        digitalWrite(LM1, LOW);
+        digitalWrite(LM2, HIGH);
+        analogWrite(9,80);
+        digitalWrite(RM1, LOW);
+        digitalWrite(RM2, LOW);
+        analogWrite(3,80);
+         
+      }
+    
+      else if((digitalRead(LS)==1) && (digitalRead(RS)==0))     // When Left Sensor detects Black tape 
+      {
+        
+        digitalWrite(LM1, LOW);
+        digitalWrite(LM2, LOW);
+        analogWrite(9,80);
+        digitalWrite(RM1, LOW);
+        digitalWrite(RM2, HIGH);
+        analogWrite(3 ,80);
+        
+      }
+    
+      else if((digitalRead(LS)==1) && (digitalRead(RS)==1))         // When Both Sensors detects Black Tape 
+      {
+        digitalWrite(LM1, LOW);
+        digitalWrite(LM2, LOW);
+        digitalWrite(RM1, LOW);
+        digitalWrite(RM2, LOW);
+        break;
+      }
+ }
+ else{
+  digitalWrite(buz,LOW);
+  STOP();
+ }
+}
+}
+
+
+ void ARM()
+ {
+  for (P2 = 0; P2 <= 90; P2 += 1) 
+  {
+    S2.write(P2);  
+    delay(15); 
+  }
+ for (P3 = 90; P3 >= 45; P3 -= 1) 
+  {
+    S3.write(P3);  
+    delay(15); 
+  }
+
+  for (P4 = 180; P4 >= 90; P4 -= 1) 
+  {
+    S4.write(P4);  
+    delay(15); 
+  }
+  for (P2 = 90; P2 >= 0; P2 -= 1) 
+  {
+    S2.write(P2);  
+    delay(15); 
+  }
+  for (P3 = 45; P3 <= 70; P3 += 1) 
+  {
+    S3.write(P3);  
+    delay(15); 
+  }
+  for (P1 = 0; P1 <= 180; P1 += 1) 
+  {
+    S1.write(P1);  
+    delay(15); 
+  }
+  for (P3 = 70; P3 >= 45; P3 -= 1) 
+  {
+    S3.write(P3);  
+    delay(15); 
+  }
+    for (P2 = 0; P2 <= 50; P2 += 1) 
+  {
+    S2.write(P2);  
+    delay(15); 
+  }
+  
+  for (P4 = 90; P4 <= 180; P4 += 1) 
+  {
+    S4.write(P4);  
+    delay(15); 
+  }
+  delay(2000);
+  
+   for (P3 = 45; P3 <= 90; P3 += 1) 
+  {
+    S3.write(P3);  
+    delay(15); 
+  }
+    for (P2 = 50; P2 >= 0; P2 -= 1) 
+  {
+    S2.write(P2);  
+    delay(15); 
+  }
+  for (P1 = 180; P1 >= 0; P1 -= 1) 
+  {
+    S1.write(P1);  
+    delay(15); 
+  }
+ }
+
+ void ULTRA()
+ {
+  digitalWrite(trigPin,HIGH);
+  delayMicroseconds(1000);
+  digitalWrite(trigPin, LOW);
+  duration=pulseIn(echoPin, HIGH);
+  distance =(duration/2)/29.1;
+//  Serial.print(distance);
+//  Serial.println("CM");
+  delay(10);
+ }
+
+void STOP()
+{
+  digitalWrite(LM1, LOW);
+  digitalWrite(LM2, LOW);
+  digitalWrite(RM1, LOW);
+  digitalWrite(RM2, LOW);
+}
